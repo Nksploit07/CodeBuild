@@ -1,9 +1,9 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  TestCodeBuild
+  CodeBuild
 
-  Sample SAM Template for TestCodeBuild
+  Sample SAM Template for CodeBuild
   
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
@@ -14,12 +14,27 @@ Globals:
     TracingEnabled: True
 
 Resources:
+  Mytable:
+    Type: Aws::DynamoDB::Table
+    Properties:
+      TableName: CodeBuildTest
+      AttributeDefinitions:
+        - AttributeNmae: CodeId
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: CodeId
+          KeyType: HASH
+
   HelloWorldFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
       CodeUri: hello-world/
       Handler: app.lambdaHandler
       Runtime: nodejs14.x
+      Timeout: 300
+      Polices:
+        - DynamoDBCurdPolicy:
+            TableName: !GetAtt Mytable.Arn
       Architectures:
         - x86_64
       Events:
@@ -28,6 +43,7 @@ Resources:
           Properties:
             Path: /hello
             Method: get
+
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
   # Find out more about other implicit resources you can reference within SAM
